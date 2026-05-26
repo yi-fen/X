@@ -1,0 +1,33 @@
+name: Build RenRenZhuiJu Tweak
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      THEOS_IGNORE_PARALLEL_BUILDING_NOTICE: yes
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Theos and Dependencies
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          brew install ldid make
+          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
+      
+      - name: Clean and Build
+        run: |
+          cd Scripts/RenRenZhuiJu
+          make clean
+          make package FINALPACKAGE=1
+      
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RenRenZhuiJu-VIP-dylib
+          path: |
+            Scripts/RenRenZhuiJu/.theos/obj/release/RenRenZhuiJu.dylib
+            Scripts/RenRenZhuiJu/packages/*.deb
