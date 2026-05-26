@@ -1,0 +1,9 @@
+Package: com.yuheng0101.renrenzhuiju
+Name: RenRenZhuiJu
+Version: 1.0.0
+Architecture: iphoneos-arm64e
+Description: 人人追剧会员解锁
+Maintainer: Yuheng0101
+Author: Yuheng0101
+Section: Tweaks
+Depends: mobilesubstrate
