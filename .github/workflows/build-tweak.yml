@@ -1,0 +1,42 @@
+name: Build RenRenZhuiJu Tweak
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      THEOS_IGNORE_PARALLEL_BUILDING_NOTICE: yes
+      THEOS: ${{ github.workspace }}/theos
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Xcode Command Line Tools
+        run: |
+          xcode-select --install 2>/dev/null || true
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      
+      - name: Install Theos and Dependencies
+        run: |
+          # 强制完整克隆Theos及所有子模块
+          git clone --depth 1 --recursive https://github.com/theos/theos.git $THEOS
+          # 安装编译依赖
+          brew install ldid make
+          # 添加GNU Make到PATH（优先于系统自带的旧版本）
+          echo "$(brew --prefix make)/libexec/gnubin" >> $GITHUB_PATH
+      
+      - name: Clean and Build
+        run: |
+          cd Scripts/RenRenZhuiJu
+          make clean
+          # 开启详细日志，方便排查错误
+          make package FINALPACKAGE=1 VERBOSE=1
+      
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: RenRenZhuiJu-VIP-dylib
+          path: |
+            Scripts/RenRenZhuiJu/.theos/obj/release/RenRenZhuiJu.dylib
+            Scripts/RenRenZhuiJu/packages/*.deb
