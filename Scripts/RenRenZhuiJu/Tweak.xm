@@ -1,0 +1,59 @@
+#import <Foundation/Foundation.h>
+#import <objc/runtime.h>
+
+%ctor {
+    NSLog(@"人人追剧 原生补丁加载成功");
+}
+
+// 全局拦截字典（只改APP业务字段，不破坏UI）
+%hook NSDictionary
+- (id)objectForKey:(id)aKey
+{
+    id res = %orig;
+    if (!aKey) return res;
+    if (![aKey isKindOfClass:[NSString class]]) return res;
+
+    NSString *key = (NSString *)aKey;
+
+    // 昵称
+    if ([key isEqualToString:@"nickname"] || [key isEqualToString:@"username"]) {
+        return @"https://t.me/onz3v_channel";
+    }
+
+    // VIP
+    if ([key isEqualToString:@"is_vip"] ||
+        [key isEqualToString:@"vip_status"] ||
+        [key isEqualToString:@"is_forever_vip"]) {
+        return @1;
+    }
+
+    if ([key isEqualToString:@"vip_need"]) {
+        return @0;
+    }
+
+    if ([key isEqualToString:@"play_auth"]) {
+        return @1;
+    }
+
+    // 广告（只精准匹配，不模糊匹配！防止破坏UI）
+    if ([key isEqualToString:@"show_splash"] ||
+        [key isEqualToString:@"splash_ad"]) {
+        return @0;
+    }
+
+    // 下载与清晰度
+    if ([key isEqualToString:@"can_download"] ||
+        [key isEqualToString:@"max_quality"]) {
+        return @1;
+    }
+
+    // VIP过期时间
+    if ([key isEqualToString:@"vip_expire_time"]) {
+        return @4070880000;
+    }
+
+    return res;
+}
+%end
+
+// 已删除：破坏全局UI的 NSNumber Hook
